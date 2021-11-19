@@ -1,0 +1,28 @@
+{
+  "name": "Linebot-find-imochi",
+  "version": "1.0.0",
+  "description": "This is a project to find imochi, using Linebot for python.",
+  "main": "index.js",
+  "scripts": {
+    "run": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hoku113/Linebot-find-imochi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Hoku113/Linebot-find-imochi/issues"
+  },
+  "homepage": "https://github.com/Hoku113/Linebot-find-imochi#readme",
+  "dependencies": {
+    "eslint": "^8.2.0",
+    "express": "^4.17.1",
+    "ngrok": "^4.2.2",
+    "nodemon": "^2.0.15",
+    "webhook": "^0.0.2"
+  }
+}
