@@ -1,7 +1,7 @@
 {
   "name": "Linebot-find-imochi",
   "version": "1.0.0",
-  "description": "This is a project to find imochi, using Linebot for python.",
+  "description": "This is a project to find imochi, using Linebot for Nodejs.",
   "main": "index.js",
   "scripts": {
     "run": "node index.js",
@@ -19,10 +19,16 @@
   },
   "homepage": "https://github.com/Hoku113/Linebot-find-imochi#readme",
   "dependencies": {
+    "@azure/cognitiveservices-customvision-prediction": "^5.1.2",
+    "@line/bot-sdk": "^7.4.0",
+    "body-parser": "^1.19.0",
+    "customvision-api": "^0.0.2",
     "eslint": "^8.2.0",
     "express": "^4.17.1",
+    "fs": "^0.0.1-security",
     "ngrok": "^4.2.2",
     "nodemon": "^2.0.15",
+    "request": "^2.88.2",
     "webhook": "^0.0.2"
   }
 }

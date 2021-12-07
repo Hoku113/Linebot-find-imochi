@@ -1,57 +1,67 @@
-const https = require("https")
-const express = require("express")
-const app = express()
 
-const PORT = process.env.PORT || 3000
-const TOKEN = process.env.LINE_ACCESS_TOKEN
+'use strict';
 
-app.use(express.json())
-app.use(express.urlencoded({
-  extended: true
-}))
+//必要なものは都度 npm i してください
+const express = require('express');
+const line = require('@line/bot-sdk');
+const PORT = process.env.PORT || 3002;
+const cv = require('@azure/cognitiveservices-customvision-prediction');
+const fs = require('fs');
+const bodyParser = require('body-parser');
+const Request = require('request');
 
-// app.get("/", (req, res) => {res.sendStatus(200)})
+const line_config = {
+    channelSecret: '',
+    channelAccessToken: ''
+};
 
-app.post("/webhook", function(req, res){
-    res.send("HTTP POST request set to the webhook URL")
+const app = express();
+const client = new line.Client(line_config);
 
-    if(req.body.events[0].type === "message"){
-        const dataString = JSON.stringify({
-            replytoken: req.body.events[0].replytoken,
-            messages: [{
-                "type": "text", 
-                "text": "Hello user"
-            }]
-        })
+app.get('/', (req, res) => res.send('Hello LINE BOT!(GET)')); //ブラウザ確認用(無くても問題ない)
+app.post('/webhook', line.middleware(line_config), (req, res) => {
+    console.log(req.body.events);
 
-        const headders = {
-            "Content-Type": "application/json", 
-            "Authorization": "Bearer " + TOKEN
+    // botに送られる画像にアクセスするための設定
+    const options = {
+        url: `https://api.line.me/v2/bot/message/${req.body.events[0].message.id}/content`,
+        method: 'get',
+        headers: {
+            'Authorization': 'Bearer ' + line_config.channelAccessToken,
+        },
+        encoding: null
+    };
+    Request(options, function(error, response, body) {
+        if (!error && response.statusCode == 200) {
+            //画像を保存します
+            fs.writeFileSync(`/tmp/` + req.body.events[0].message.id + `.jpg`, new Buffer(body), 'binary');
+            console.log('file saved');
+            const filePath = `/tmp/` + req.body.events[0].message.id + `.jpg`;
+            const cv_config = {
+                "predictionEndpoint": "",
+                "predictionKey": ""
+            };
+
+            cv.sendImage(
+                filePath,
+                cv_config,
+                (data) => {
+                    console.log(data); 
+                    let tagName = data.predictions[0].tagName;
+                    let probability = data.predictions[0].probability;
+
+                    client.replyMessage(req.body.events[0].replyToken, {
+                        type: 'text',
+                        text: tagName + 'の確率、' + probability 
+                      }); 
+                }
+            );
         }
-
-        const webhookOptions = {
-            "hostname": "api.line.me",
-            "path": "/v2/bot/message/reply",
-            "method": "POST", 
-            "headers": headers,
-            "body": dataString
-        }
-
-        const request = https.request(webhookOptions, (res) => {
-            res.on("data", (d) =>{
-                process.stdout.write(d)
-            })
-        })
-
-        request.on("error", (err) => {
-            console.error(err)
-        })
-
-        request.write(dataString)
-        request.end()
-    }
+    })
+    Promise
+        .all(req.body.events.map(handleEvent))
+        .then((result) => res.json(result));
 })
 
-app.listen(PORT, () => {
-    console.log(`Example app listening at http://localhost:${PORT}`)
-  })
+app.listen(PORT);
+console.log(`Server running at ${PORT}`);
